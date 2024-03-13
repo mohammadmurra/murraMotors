@@ -365,6 +365,7 @@ export const ADD_PAYMENT_MUTATION = gql`
     addPayment(input: $input) {
       success
       message
+      code
     }
   }
 `;
@@ -384,22 +385,72 @@ export const SEND_FINANCIAL_REMINDER = gql`
   }
 `;
 export const GET_CECKS_REPORTS = gql`
-  query GetReports($reportType: String!, $duePeriod: String, $startDateTimestamp: Date,$endDateTimestamp : Date, $selectAll: Boolean,$language: String,$conversionRate:Float $checkType: String) {
-    getCheckReports(reportType: $reportType, duePeriod: $duePeriod, startDateTimestamp: $startDateTimestamp, endDateTimestamp:$endDateTimestamp, selectAll: $selectAll,language: $language,conversionRate:$conversionRate, checkType:$checkType) {
+  query GetReports(
+    $reportType: String!
+    $duePeriod: String
+    $startDateTimestamp: Date
+    $endDateTimestamp: Date
+    $selectAll: Boolean
+    $language: String
+    $conversionRate: Float
+    $checkType: String
+  ) {
+    getCheckReports(
+      reportType: $reportType
+      duePeriod: $duePeriod
+      startDateTimestamp: $startDateTimestamp
+      endDateTimestamp: $endDateTimestamp
+      selectAll: $selectAll
+      language: $language
+      conversionRate: $conversionRate
+      checkType: $checkType
+    ) {
       downloadUrl
     }
   }
 `;
 export const GENERATE_INVOICE_QUERY = gql`
-  query GenerateInvoice($reportType: String!, $duePeriod: String, $startDateTimestamp: Date,$endDateTimestamp : Date, $selectAll: Boolean,$language: String,$invoiceType: String!,$debtorId: String!) {
-    generateInvoice(reportType: $reportType, duePeriod: $duePeriod, startDateTimestamp: $startDateTimestamp, endDateTimestamp:$endDateTimestamp, selectAll: $selectAll,language: $language,invoiceType: $invoiceType, debtorId: $debtorId) {
+  query GenerateInvoice(
+    $reportType: String!
+    $duePeriod: String
+    $startDateTimestamp: Date
+    $endDateTimestamp: Date
+    $selectAll: Boolean
+    $language: String
+    $invoiceType: String!
+    $debtorId: String!
+  ) {
+    generateInvoice(
+      reportType: $reportType
+      duePeriod: $duePeriod
+      startDateTimestamp: $startDateTimestamp
+      endDateTimestamp: $endDateTimestamp
+      selectAll: $selectAll
+      language: $language
+      invoiceType: $invoiceType
+      debtorId: $debtorId
+    ) {
       downloadUrl
     }
   }
 `;
 export const GENERATE_INVOICE_PAYMENTS_DEBTS_QUERY = gql`
-  query GenerateInvoicePaymentsDebts($reportType: String!, $reportPeriod: String, $startDate: Date,$endDate : Date,$language: String,$debtorId: String!) {
-    GenerateInvoicePaymentsDebts(reportType: $reportType, reportPeriod: $reportPeriod, startDateTimestamp: $startDate, endDateTimestamp:$endDate,language: $language, debtorId: $debtorId) {
+  query GenerateInvoicePaymentsDebts(
+    $reportType: String!
+    $reportPeriod: String
+    $startDate: Date
+    $endDate: Date
+    $language: String
+    $debtorId: String!
+  ) {
+    GenerateInvoicePaymentsDebts(
+      reportType: $reportType
+      reportPeriod: $reportPeriod
+      startDateTimestamp: $startDate
+      endDateTimestamp: $endDate
+      language: $language
+      debtorId: $debtorId
+    ) {
       downloadUrl
       message
       success
@@ -407,9 +458,30 @@ export const GENERATE_INVOICE_PAYMENTS_DEBTS_QUERY = gql`
   }
 `;
 export const GENERATE_Certificate_QUERY = gql`
-  query handleGenerateCertif($debtorDebts: [String!],$debtorName :String!) {
-    handleGenerateCertif(debtorName: $debtorName,debtorDebts:$debtorDebts) {
+  query handleGenerateCertif($debtorDebts: [String!], $debtorName: String!) {
+    handleGenerateCertif(debtorName: $debtorName, debtorDebts: $debtorDebts) {
       downloadUrl
+      message
+      success
+    }
+  }
+`;
+export const ADD_CHECKBOOK_MUTATION = gql`
+  mutation AddCheckbook(
+    $bankName: String!
+    $ownerName: String!
+    $numberOfChecks: Int!
+    $date: Float!
+  ) {
+    addCheckbook(
+      input: {
+        bankName: $bankName
+        ownerName: $ownerName
+        numberOfChecks: $numberOfChecks
+        date: $date
+      }
+    ) {
+      checkbookId
       message
       success
     }

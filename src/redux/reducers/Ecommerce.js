@@ -9,6 +9,7 @@ import {
   GET_RECENT_TRANS,
   REMOVE_CART_ITEM,
   GET_MAIL,
+  GET_CHECKBOOKS,
   SET_CART_ITEMS,
   SET_FILTER_DATA,
   SET_SearchFILTER_DATA,
@@ -138,6 +139,13 @@ const ecommerceReducer = (state = initialState, action) => {
             notifUsers: action.payload.notifUsers,
             lastVisible: action.payload.lastVisible,
           };
+          case GET_CHECKBOOKS:
+            return {
+              ...state,
+              checkbooksCount: action.payload.checkbooksCount,
+              checkbooks: action.payload.checkbooks,
+              lastVisible: action.payload.lastVisible,
+            };
     case SET_CART_ITEMS:
       return {
         ...state,

@@ -1,5 +1,7 @@
 import {
+  RiListSettingsFill,
   RiMoneyDollarBoxLine,
+  RiMoneyDollarCircleFill,
   RiNotification2Fill,
   RiNotification2Line,
   RiPrinterLine,
@@ -220,6 +222,23 @@ const routesConfig = [
             type: 'item',
             icon: <RiNotification2Line />,
             url: 'notifications/financialMangment',
+          },
+        ],
+      },
+      {
+        id: 'ChecksMangment',
+        title: 'ChecksMangment',
+        messageId: 'common.ChecksgeneralMangment',
+        type: 'collapse',
+        icon: <RiListSettingsFill />,
+        children: [
+          {
+            id: 'ChecksbookMangment',
+            title: 'ChecksbookMangment',
+            messageId: 'common.ChecksMangment',
+            type: 'item',
+            icon: <RiMoneyDollarCircleFill />,
+            url: 'settings/ChecksMangment',
           },
         ],
       },

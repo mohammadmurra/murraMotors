@@ -128,6 +128,7 @@ export const GET_MAIL ='get_mail';
 export const GET_CUSTOMERS = 'get_customers';
 export const GET_DEBTORS = 'get_debtors';
 export const GET_ISSUED_CHECKS = 'get_issued_checks';
+export const GET_CHECKBOOKS = 'add_checkbooks';
 
 export const ADD_CART_ITEM = 'add_cart_item';
 export const REMOVE_CART_ITEM = 'remove_cart_item';

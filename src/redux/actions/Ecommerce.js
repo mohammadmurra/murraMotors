@@ -12,6 +12,7 @@ import {
   GET_ISSUED_CHECKS,
   REMOVE_CART_ITEM,
   SET_FILTER_DATA,
+  GET_CHECKBOOKS,
   SET_PRODUCT_DATA,
   SET_PRODUCT_VIEW_TYPE,
   GET_MAIL,
@@ -205,6 +206,29 @@ export const getIssuedChecks = (search, page, index, isNext) => {
         if (data.status === 200) {
           dispatch({type: FETCH_SUCCESS});
           dispatch({type: GET_ISSUED_CHECKS, payload: data.data});
+        } else {
+          dispatch({
+            type: FETCH_ERROR,
+            payload: 'Something went wrong, Please try again!',
+          });
+        }
+      })
+      .catch((error) => {
+        dispatch({type: FETCH_ERROR, payload: error.message});
+      });
+  };
+};
+export const getCheckbooks = (search, page, index, isNext) => {
+  return (dispatch) => {
+    dispatch({type: FETCH_START});
+    jwtAxios
+      .get('/api/ecommerce/ChecksMangment', {
+        params: {search, page, index, isNext},
+      })
+      .then((data) => {
+        if (data.status === 200) {
+          dispatch({type: FETCH_SUCCESS});
+          dispatch({type: GET_CHECKBOOKS, payload: data.data});
         } else {
           dispatch({
             type: FETCH_ERROR,

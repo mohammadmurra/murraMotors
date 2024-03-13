@@ -419,6 +419,7 @@ const AddPaymentPage = () => {
         }
         const checksWithTimestamp = checks.map((check) => ({
           ...check,
+          ownerName: check.ownerName.trim(), // Trim whitespace from ownerName
           date: new Date(check.date).getTime().toString(),
           value: parseFloat(check.value),
           checkFrom: debtorName,
@@ -441,8 +442,20 @@ const AddPaymentPage = () => {
       console.log(paymentData);
       const response = await addPayment({variables: {input: paymentData}});
       console.log('Payment added:', response.data);
+
+      if (response && response.data && response.data.addPayment.success) {
+        // Adjust according to your actual response structure
+        setSuccessMessage(messages['PaymentSuccessfullyAdded']);
+      } else if (
+        response &&
+        response.data &&
+        !response.data.addPayment.success &&
+        response.data.addPayment.code == 5
+      ) {
+        setSuccessMessage(messages['PaymentExist']);
+      }
+
       setIsDirty(false);
-      setSuccessMessage(messages['PaymentSuccessfullyAdded']);
     } catch (error) {
       console.error('Error adding payment:', error);
       setErrorMessage(error.message);
@@ -638,7 +651,7 @@ const AddPaymentPage = () => {
       </Select>
     </FormControl>
   );
-  
+
   const renderCashForm = () => {
     return (
       <Card sx={{p: 2, mb: 2}}>
@@ -831,7 +844,6 @@ const AddPaymentPage = () => {
         {loading ? messages['Processing'] : messages['SubmitPayment']}
       </Button>
     </Box>
-    
   );
 };
 

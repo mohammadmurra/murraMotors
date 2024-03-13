@@ -1044,7 +1044,57 @@ const getissuedChecks = async (request) => {
     return [500, {error: 'Failed to fetch checks'}];
   }
 };
+const getCheckbooks = async (request) => {
+  const {index, isNext, search} = request.params;
+  let checks = [];
+  let query = firebase.firestore().collection('checkbooks');
 
+  try {
+    if (search) {
+      const searchString = search.trim();
+      const endString =
+        searchString.slice(0, -1) +
+        String.fromCharCode(
+          searchString.charCodeAt(searchString.length - 1) + 1,
+        );
+      query = query
+        .where('ownerName', '>=', searchString)
+        .where('ownerName', '<', endString);
+    } else {
+      query = query.orderBy('date', 'desc').limit(40);
+      if (index) {
+        if (isNext) {
+          query = query.startAfter(index);
+        } else {
+          query = query.endBefore(index);
+        }
+      }
+    }
+
+    const querySnapshot = await query.get();
+    querySnapshot.forEach((doc) => {
+      checks.push({...doc.data(), id: doc.id});
+    });
+
+    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+    const totalChecksCount = querySnapshot.size;
+
+    console.log('Checks fetched:', checks);
+    console.log('Total checks count:', totalChecksCount);
+
+    return [
+      200,
+      {
+        checkbooksCount: totalChecksCount,
+        checkbooks: checks,
+        lastVisible: lastVisible ? lastVisible.data().time : null,
+      },
+    ];
+  } catch (error) {
+    console.error('Error fetching checks:', error);
+    return [500, {error: 'Failed to fetch checks'}];
+  }
+};
 /////////////////////////////////
 
 const getOrderStatus = async (request) => {
@@ -1226,6 +1276,20 @@ mock.onGet('/api/ecommerce/issuedChecks').reply((request) => {
   let user = [];
   user = getissuedChecks(request);
   console.log(user);
+  return user;
+
+  // if (search) {
+  //   customers = customers.filter(
+  //     (customer) =>
+  //       customer.name.toLowerCase().includes(search.toLowerCase()) ||
+  //       customer.email.toLowerCase().includes(search.toLowerCase()),
+  //   );
+  // }
+});
+mock.onGet('/api/ecommerce/ChecksMangment').reply((request) => {
+  let user = [];
+  user = getCheckbooks(request);
+
   return user;
 
   // if (search) {

@@ -327,12 +327,12 @@ const addIssuedCheck = () => {
         alert(messages['PleaseAddAtLeastOneCheck']);
         return;
       }
-
+  
       for (const check of checks) {
         const cashTimestamp = new Date(check.date).getTime();
-
+  
         const input = {
-          ownerName: check.ownerName,
+          ownerName: check.ownerName.trim(), // Trimming whitespace from the start and end
           checkNumber: check.checkNumber,
           date: cashTimestamp.toString(),
           value: parseFloat(check.value),
@@ -349,17 +349,22 @@ const addIssuedCheck = () => {
         };
         console.log(input);
   
-        await addIssued({ variables: { input } });
+        const response = await addIssued({ variables: { input } });
+  
+        // Example handling of the response
+        if (response && response.data && response.data.addIssued && response.data.addIssued.success) {
+          setSuccessMessage(response.data.addIssued.message); // Assuming 'message' holds the success message
+        }
       }
   
-      setChecks([]); // Clear checks after submission if necessary
-      setIsDirty(false);
-      setSuccessMessage(messages['PaymentSuccessfullyAdded']);
+      // If you want a general success message after all checks are processed, uncomment the next line
+      // setSuccessMessage(messages['PaymentSuccessfullyAdded']);
     } catch (error) {
       console.error('Error adding payment:', error);
       setErrorMessage(error.message);
     }
   };
+  
   
 
   const deleteCheck = (index) => {
