@@ -549,12 +549,15 @@ const AddPaymentPage = () => {
         <Typography variant='subtitle1' marginBottom={'1rem'}>
           {messages['CheckDetails']}
         </Typography>
+        <Typography marginTop={'1rem'} marginBottom={'1rem'} variant='body1'>
+          {messages['OwnerName']}
+        </Typography>
         {!loading && (
           <Autocomplete
             options={checkbooks}
             getOptionLabel={(option) => option.ownerName || ''}
             renderInput={(params) => (
-              <TextField {...params} label='Owner Name' variant='outlined' />
+              <TextField {...params} label={messages['OwnerName']} variant='outlined' />
             )}
             onChange={(event, newValue) => {
               setNewCheck((prevCheck) => ({
