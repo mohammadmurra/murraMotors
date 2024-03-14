@@ -813,7 +813,7 @@
   "Debtor with this name already exists.": "المدين بنفس الاسم موجود بالفعل.",
   "Debtor with this phone number already exists.": "المدين بهذا الرقم موجود بالفعل.",
   "common.financialMangment": "الإشعارات المالية",
-  "common.ChecksMangment": "ادارة دفاتر شيكات",
+  "common.ChecksMangment": "ادارة لاسماء المختصره ",
   "common.ChecksgeneralMangment": "ادارة الشيكات",
   "addCheckbook": "إضافة اسم مختصر",
   "editName": "تعديل الاسم",
