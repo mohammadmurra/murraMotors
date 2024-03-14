@@ -504,10 +504,14 @@ const addIssuedCheck = () => {
           fullWidth
           placeholder={messages['CheckNumber']}
           name='checkNumber'
+          type='number'
+
           value={newCheck.checkNumber}
           onChange={handleCheckChange}
           helperText={errors.checkNumber && renderErrorText(errors.checkNumber)}
           error={errors.checkNumber}
+          onWheel={(e) => e.target.blur()} // Add this line
+
         />
         <Typography marginTop={'1rem'} variant='body1'>
           {messages['CheckDate']}
