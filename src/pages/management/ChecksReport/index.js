@@ -35,6 +35,12 @@ const ChecksReports = () => {
   const [checkType, setCheckType] = useState('Checks'); // State to manage the check type
 
   const handleCheckTypeChange = (type) => {
+    if(type=='Checks'){
+      setReportType('due');
+    }
+    if(type=='issuedChecks'){
+      setReportType('cashed');
+    }
     setCheckType(type);
   };
 

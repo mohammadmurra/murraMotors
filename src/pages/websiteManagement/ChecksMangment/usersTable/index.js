@@ -7,7 +7,7 @@ import TableHeading from './TableHeading';
 import TableItem from './TableItem';
 import AppTableContainer from '../../../../@crema/core/AppTableContainer';
 
-const usersTable = ({employees}) => {
+const usersTable = ({employees,handleAddSuccess}) => {
   
   return (
     <AppTableContainer>
@@ -17,7 +17,7 @@ const usersTable = ({employees}) => {
         </TableHead>
         <TableBody>
           {employees.map((data,index) => (
-            <TableItem data={data} key={data.orderId} index={index}/>
+            <TableItem data={data} key={data.orderId} index={index} handleAddSuccess={handleAddSuccess}/>
           ))}
         </TableBody>
       </Table>
@@ -33,4 +33,5 @@ usersTable.defaultProps = {
 
 usersTable.propTypes = {
   employees: PropTypes.array,
+  handleAddSuccess:PropTypes.func.isRequired,
 };

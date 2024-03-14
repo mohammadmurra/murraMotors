@@ -13,15 +13,21 @@ import {
   Checkbox,
   Card,
   IconButton,
+  Autocomplete,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {useMutation} from '@apollo/client';
-import {ADD_ISSUEDCHECK_MUTATION} from 'query/orderReoprt/getOrder';
+import {useMutation, useQuery} from '@apollo/client';
+import {
+  ADD_ISSUEDCHECK_MUTATION,
+  GET_CHECKBOOKS_QUERY,
+} from 'query/orderReoprt/getOrder';
 import {useIntl} from 'react-intl';
 import {firebase} from '@crema/services/auth/firebase/firebase';
 import {useAuthState} from 'react-firebase-hooks/auth';
+import {useNavigate} from 'react-router-dom';
+
 const addIssuedCheck = () => {
   const [user] = useAuthState(firebase.auth());
   const [addedBy, setAddedBy] = useState('');
@@ -30,6 +36,7 @@ const addIssuedCheck = () => {
   // Parse the query string
   const [currency, setCurrency] = useState('ILS');
   const [conversionRate, setConversionRate] = useState('');
+  const navigate = useNavigate();
 
   const cashValueRef = useRef(null);
   const checkValueRef = useRef(null);
@@ -39,6 +46,10 @@ const addIssuedCheck = () => {
 
   const [paymentType, setPaymentType] = useState('check');
   const [checks, setChecks] = useState([]);
+  const {data} = useQuery(GET_CHECKBOOKS_QUERY);
+  const [checkbooks, setCheckbooks] = useState([]);
+  const [added, setAdded] = useState(false);
+
   // Update useEffect to handle user changes
   useEffect(() => {
     if (user) {
@@ -321,16 +332,17 @@ const addIssuedCheck = () => {
 
   const handleSubmitPayment = async () => {
     setSuccessMessage('');
-  
+    setAdded(false);
+
     try {
       if (checks.length === 0) {
         alert(messages['PleaseAddAtLeastOneCheck']);
         return;
       }
-  
+
       for (const check of checks) {
         const cashTimestamp = new Date(check.date).getTime();
-  
+
         const input = {
           ownerName: check.ownerName.trim(), // Trimming whitespace from the start and end
           checkNumber: check.checkNumber,
@@ -343,20 +355,38 @@ const addIssuedCheck = () => {
           rejected: check.rejected,
           notes: check.notes,
           currency: check.currency,
-          conversionRate: check.currency === 'USD' ? parseFloat(check.conversionRate) || 0 : null,
+          conversionRate:
+            check.currency === 'USD'
+              ? parseFloat(check.conversionRate) || 0
+              : null,
           addedBy: addedBy,
           editedBy: '', // Or any other value you need to set
         };
         console.log(input);
-  
-        const response = await addIssued({ variables: { input } });
-  
-        // Example handling of the response
-        if (response && response.data && response.data.addIssued && response.data.addIssued.success) {
-          setSuccessMessage(response.data.addIssued.message); // Assuming 'message' holds the success message
+
+        const response = await addIssued({variables: {input}});
+        if (
+          response &&
+          response.data &&
+          response.data.addIssuedCheck &&
+          response.data.addIssuedCheck.success
+        ) {
+          setAdded(true);
+          setSuccessMessage(messages['PaymentSuccessfullyAdded']);
+          // Redirect after 3 seconds
+          setTimeout(() => {
+            navigate(-1); // replace '/path-to-redirect' with your actual path
+          }, 3000);
+        } else if (
+          response &&
+          response.data &&
+          response.data.addIssuedCheck &&
+          response.data.addIssuedCheck.code === 5
+        ) {
+          setSuccessMessage(messages['PaymentExist']);
         }
       }
-  
+
       // If you want a general success message after all checks are processed, uncomment the next line
       // setSuccessMessage(messages['PaymentSuccessfullyAdded']);
     } catch (error) {
@@ -364,8 +394,6 @@ const addIssuedCheck = () => {
       setErrorMessage(error.message);
     }
   };
-  
-  
 
   const deleteCheck = (index) => {
     setChecks((prevChecks) => prevChecks.filter((_, i) => i !== index));
@@ -422,6 +450,11 @@ const addIssuedCheck = () => {
       </Box>
     );
   };
+  useEffect(() => {
+    if (data && data.getCheckbooks) {
+      setCheckbooks(data.getCheckbooks);
+    }
+  }, [data]);
 
   const renderChecksForm = () => {
     return (
@@ -429,16 +462,29 @@ const addIssuedCheck = () => {
         <Typography variant='subtitle1' marginBottom={'1rem'}>
           {messages['CheckDetails']}
         </Typography>
-        <Typography variant='body1'>{messages['OwnerName']}</Typography>
-        <TextField
-          fullWidth
-          placeholder={messages['OwnerName']}
-          name='ownerName'
-          value={newCheck.ownerName}
-          onChange={handleCheckChange}
-          helperText={errors.ownerName && renderErrorText(errors.ownerName)}
-          error={errors.ownerName}
-        />
+        {!loading && (
+          <Autocomplete
+            options={checkbooks}
+            getOptionLabel={(option) => option.ownerName || ''}
+            renderInput={(params) => (
+              <TextField {...params} label='Owner Name' variant='outlined' />
+            )}
+            onChange={(event, newValue) => {
+              setNewCheck((prevCheck) => ({
+                ...prevCheck,
+                ownerName: newValue ? newValue.ownerName : '',
+              }));
+            }}
+            value={
+              checkbooks.find(
+                (checkbook) => checkbook.ownerName === newCheck.ownerName,
+              ) || null
+            }
+            isOptionEqualToValue={(option, value) =>
+              option.ownerName === value.ownerName
+            }
+          />
+        )}
         <Typography marginTop={'1rem'} variant='body1'>
           {messages['CheckNumber']}
         </Typography>
@@ -666,7 +712,9 @@ const addIssuedCheck = () => {
         variant='contained'
         color='primary'
         onClick={handleSubmitPayment}
-        disabled={(paymentType === 'check' && checks.length === 0) || loading}
+        disabled={
+          (paymentType === 'check' && checks.length === 0) || loading || added
+        }
         sx={{mt: 2}}
       >
         {loading ? messages['Processing'] : messages['SubmitPayment']}

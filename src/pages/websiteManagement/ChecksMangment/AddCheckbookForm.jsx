@@ -7,62 +7,63 @@ import {
   Typography,
   Card,
   CardContent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import {useMutation} from '@apollo/client';
 import {ADD_CHECKBOOK_MUTATION} from 'query/orderReoprt/getOrder';
+import {useIntl} from 'react-intl';
 
-const banks = [
-  'بنك فلسطين',
-  'البنك الوطني',
-  'بنك الاستثمار الفلسطيني',
-  'مصرف الصفا',
-  'بنك القدس',
-  'البنك الإسلامي الفلسطيني',
-  'البنك الإسلامي العربي',
-  'البنك العربي',
-  'بنك القاهرة عمان',
-  'بنك الإسكان للتجارة والتمويل',
-  'بنك الأردن',
-  'البنك الأهلي الأردني',
-  'البنك العقاري المصري العربي',
-];
-const AddCheckbookForm = ({setOpenModal}) => {
-  const [bankName, setBankName] = useState('');
+const AddCheckbookForm = ({setOpenModal,onAddSuccess}) => {
   const [ownerName, setOwnerName] = useState('');
-  const [numberOfChecks, setNumberOfChecks] = useState('');
-  const [addCheckbook, {loading, error}] = useMutation(ADD_CHECKBOOK_MUTATION);
+  const [addCheckbook, {loading, data, error}] = useMutation(
+    ADD_CHECKBOOK_MUTATION,
+  );
+  const {messages} = useIntl();
 
-  const handleSubmit = async (event) => {
-    const currentDate = new Date();
-  
-    const date =currentDate.getTime();// Initialize with the current date
-
+ const handleSubmit = async (event) => {
     event.preventDefault();
+    const currentDate = new Date();
+
     try {
       const response = await addCheckbook({
         variables: {
-          bankName,
           ownerName,
-          numberOfChecks: parseInt(numberOfChecks, 10),
-          date: date // Convert the selected date to a timestamp in milliseconds
-
+          date: currentDate.getTime(),
         },
       });
-      if (!loading && !error) {
-        console.log('Checkbook added:', response.data);
+
+      if (response.data.addCheckbook.success) {
+        onAddSuccess();  // Call the callback function when addition is successful
         setOpenModal(false);
       }
     } catch (err) {
-      // Since we're in a catch block, error handling is already being taken care of here
       console.error('Error adding checkbook:', err);
-      // You can set additional state here to show error messages in the UI if needed
     }
   };
-
+  const handleClose = () => {
+    setOpenModal(false);
+  };
+  const renderAlert = () => {
+    // If there's a GraphQL error
+    if (error) return <Alert severity='error'>{error.message}</Alert>;
+    
+    // Check if the mutation returned data
+    if (data && data.addCheckbook) {
+      if (!data.addCheckbook.success) {
+        // Check the error code to display the appropriate message
+        const message = data.addCheckbook.code === 1 ? messages['nameExist'] : messages['addError'];
+        return <Alert severity='error'>{message}</Alert>;
+      } else {
+        // When the mutation is successful
+        return <Alert severity='success'>{data.addCheckbook.message}</Alert>;
+      }
+    }
+  
+    // No alerts to show if there's no error or specific data
+    return null;
+  };
+  
   return (
     <Box
       display='flex'
@@ -70,64 +71,42 @@ const AddCheckbookForm = ({setOpenModal}) => {
       alignItems='center'
       minHeight='100vh'
     >
-      <Card sx={{maxWidth: 480, margin: 'auto', width: '100%'}}>
+      <Card sx={{width: '80%', maxWidth: 480, mx: 'auto', p: 2}}>
         <CardContent>
-          {/* Show a loading message or spinner when the mutation is in progress */}
-          {loading && (
-            <Box textAlign='center' py={2}>
-              <Typography>Loading...</Typography>
-            </Box>
-          )}
-
-          {/* Show an error message if the mutation failed */}
-          {error && (
-            <Box textAlign='center' py={2}>
-              <Typography color='error'>Error: {error.message}</Typography>
-            </Box>
-          )}
-
-          <Box padding={3} component='form' onSubmit={handleSubmit}>
+          <Box component='form' onSubmit={handleSubmit} noValidate sx={{mt: 1}}>
             <Typography variant='h6' marginBottom={2}>
-              Add Checkbook
+              {messages['invoice.name']}
             </Typography>
-
-            <FormControl fullWidth margin='normal'>
-              <InputLabel>Bank Name</InputLabel>
-              <Select
-                value={bankName}
-                label='Bank Name'
-                onChange={(e) => setBankName(e.target.value)}
-              >
-                {banks.map((bank, index) => (
-                  <MenuItem key={index} value={bank}>
-                    {bank}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
+            <Typography variant='body2' marginBottom={2}>
+              {messages['addCheckbookDescription']}
+            </Typography>
             <TextField
-              label='Owner Name'
+              label={messages['invoice.name']}
               variant='outlined'
               fullWidth
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
               margin='normal'
+              disabled={loading}
             />
-
-            <TextField
-              label='Number of Checks'
-              type='number'
-              variant='outlined'
-              fullWidth
-              value={numberOfChecks}
-              onChange={(e) => setNumberOfChecks(e.target.value)}
-              margin='normal'
-            />
-
-            <Box display='flex' justifyContent='flex-end' marginTop={2}>
-              <Button variant='contained' color='primary' type='submit'>
-                Add Checkbook
+            {renderAlert()}
+            <Box display='flex' justifyContent='space-between' marginTop={2}>
+              <Button
+                variant='outlined'
+                color='secondary'
+                onClick={handleClose}
+                disabled={loading}
+              >
+                {messages['mangment.close']}
+              </Button>
+              <Button
+                variant='contained'
+                color='primary'
+                type='submit'
+                disabled={loading || ownerName.trim() === ''}
+                startIcon={loading ? <CircularProgress size={24} /> : null}
+              >
+                {messages['addCheckbook']}
               </Button>
             </Box>
           </Box>
@@ -139,6 +118,7 @@ const AddCheckbookForm = ({setOpenModal}) => {
 
 AddCheckbookForm.propTypes = {
   setOpenModal: PropTypes.func.isRequired,
+  onAddSuccess: PropTypes.func.isRequired,
 };
 
 export default AddCheckbookForm;

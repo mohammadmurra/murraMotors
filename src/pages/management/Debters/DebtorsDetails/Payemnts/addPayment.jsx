@@ -13,20 +13,28 @@ import {
   Checkbox,
   Card,
   IconButton,
+  Autocomplete,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {useMutation} from '@apollo/client';
-import {ADD_PAYMENT_MUTATION} from 'query/orderReoprt/getOrder';
+import {useMutation, useQuery} from '@apollo/client';
+import {
+  ADD_PAYMENT_MUTATION,
+  GET_CHECKBOOKS_QUERY,
+} from 'query/orderReoprt/getOrder';
 import {useParams} from 'react-router-dom';
 import {useLocation} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {firebase} from '@crema/services/auth/firebase/firebase';
 import {useAuthState} from 'react-firebase-hooks/auth';
+import {useNavigate} from 'react-router-dom';
+
 const AddPaymentPage = () => {
   const [user] = useAuthState(firebase.auth());
   const [addedBy, setAddedBy] = useState('');
+  const [added, setAdded] = useState(false);
+  const navigate = useNavigate();
 
   const location = useLocation();
   const {messages} = useIntl();
@@ -42,10 +50,17 @@ const AddPaymentPage = () => {
   const [addPayment, {loading, error}] = useMutation(ADD_PAYMENT_MUTATION);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const {data} = useQuery(GET_CHECKBOOKS_QUERY);
+  const [checkbooks, setCheckbooks] = useState([]);
 
   const [paymentType, setPaymentType] = useState(type);
   const [checks, setChecks] = useState([]);
   const [debtorName, setDebtorName] = useState('');
+  useEffect(() => {
+    if (data && data.getCheckbooks) {
+      setCheckbooks(data.getCheckbooks);
+    }
+  }, [data]);
 
   useEffect(() => {
     const fetchDebtorName = async () => {
@@ -392,6 +407,7 @@ const AddPaymentPage = () => {
 
   const handleSubmitPayment = async () => {
     setSuccessMessage('');
+    setAdded(false);
 
     try {
       let paymentData;
@@ -443,17 +459,26 @@ const AddPaymentPage = () => {
       const response = await addPayment({variables: {input: paymentData}});
       console.log('Payment added:', response.data);
 
-      if (response && response.data && response.data.addPayment.success) {
-        // Adjust according to your actual response structure
-        setSuccessMessage(messages['PaymentSuccessfullyAdded']);
-      } else if (
-        response &&
-        response.data &&
-        !response.data.addPayment.success &&
-        response.data.addPayment.code == 5
-      ) {
-        setSuccessMessage(messages['PaymentExist']);
-      }
+
+        if (
+          response &&
+          response.data &&
+          response.data.addPayment &&
+          response.data.addPayment.success
+        ) {
+          setAdded(true);
+          setSuccessMessage(messages['PaymentSuccessfullyAdded']);
+          // Redirect after 3 seconds
+          setTimeout(() => {
+            navigate(-1); // replace '/path-to-redirect' with your actual path
+          }, 3000);
+        }else if( response &&
+          response.data &&
+          response.data.addPayment &&
+          response.data.addPayment.code === 5){
+            setSuccessMessage(messages['PaymentExist']);
+
+          }
 
       setIsDirty(false);
     } catch (error) {
@@ -524,16 +549,29 @@ const AddPaymentPage = () => {
         <Typography variant='subtitle1' marginBottom={'1rem'}>
           {messages['CheckDetails']}
         </Typography>
-        <Typography variant='body1'>{messages['OwnerName']}</Typography>
-        <TextField
-          fullWidth
-          placeholder={messages['OwnerName']}
-          name='ownerName'
-          value={newCheck.ownerName}
-          onChange={handleCheckChange}
-          helperText={errors.ownerName && renderErrorText(errors.ownerName)}
-          error={errors.ownerName}
-        />
+        {!loading && (
+          <Autocomplete
+            options={checkbooks}
+            getOptionLabel={(option) => option.ownerName || ''}
+            renderInput={(params) => (
+              <TextField {...params} label='Owner Name' variant='outlined' />
+            )}
+            onChange={(event, newValue) => {
+              setNewCheck((prevCheck) => ({
+                ...prevCheck,
+                ownerName: newValue ? newValue.ownerName : '',
+              }));
+            }}
+            value={
+              checkbooks.find(
+                (checkbook) => checkbook.ownerName === newCheck.ownerName,
+              ) || null
+            }
+            isOptionEqualToValue={(option, value) =>
+              option.ownerName === value.ownerName
+            }
+          />
+        )}
         <Typography marginTop={'1rem'} variant='body1'>
           {messages['CheckNumber']}
         </Typography>
@@ -838,7 +876,9 @@ const AddPaymentPage = () => {
         variant='contained'
         color='primary'
         onClick={handleSubmitPayment}
-        disabled={(paymentType === 'check' && checks.length === 0) || loading}
+        disabled={
+          (paymentType === 'check' && checks.length === 0) || loading || added
+        }
         sx={{mt: 2}}
       >
         {loading ? messages['Processing'] : messages['SubmitPayment']}

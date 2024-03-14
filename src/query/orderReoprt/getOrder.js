@@ -467,23 +467,41 @@ export const GENERATE_Certificate_QUERY = gql`
   }
 `;
 export const ADD_CHECKBOOK_MUTATION = gql`
-  mutation AddCheckbook(
-    $bankName: String!
-    $ownerName: String!
-    $numberOfChecks: Int!
-    $date: Float!
-  ) {
-    addCheckbook(
-      input: {
-        bankName: $bankName
-        ownerName: $ownerName
-        numberOfChecks: $numberOfChecks
-        date: $date
-      }
-    ) {
-      checkbookId
+  mutation AddCheckbook($ownerName: String!, $date: Float!) {
+    addCheckbook(input: {ownerName: $ownerName, date: $date}) {
       message
       success
+      code
+    }
+  }
+`;
+export const EDIT_CHECKBOOK_MUTATION = gql`
+  mutation EditCheckbook($ownerOldName: String!, $ownerNewName: String!) {
+    EditCheckbook(
+      input: {ownerOldName: $ownerOldName, ownerNewName: $ownerNewName}
+    ) {
+      success
+      message
+      code
+      # Add any additional fields you expect in the response
+    }
+  }
+`;
+
+export const DELETE_CHECKBOOK_MUTATION = gql`
+  mutation DeleteCheckbook($ownerOldName: String!) {
+    DeleteCheckbook(input: {ownerOldName: $ownerOldName}) {
+      success
+      message
+      code
+      # Add any additional fields you expect in the response
+    }
+  }
+`;
+export const GET_CHECKBOOKS_QUERY = gql`
+  query GetCheckbooks {
+    getCheckbooks {
+      ownerName
     }
   }
 `;
