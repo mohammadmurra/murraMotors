@@ -467,8 +467,8 @@ const addIssuedCheck = () => {
         </Typography>
         {!loading && (
           <Autocomplete
-            options={checkbooks}
-            getOptionLabel={(option) => option.ownerName || ''}
+            freeSolo
+            options={checkbooks.map((checkbook) => checkbook.ownerName)}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -476,20 +476,25 @@ const addIssuedCheck = () => {
                 variant='outlined'
               />
             )}
+            onInputChange={(event, newValue) => {
+              // Handle custom input
+              if (event && event.type === 'change') {
+                setNewCheck((prevCheck) => ({
+                  ...prevCheck,
+                  ownerName: newValue || '', // Set to empty string if newValue is null
+                }));
+              }
+            }}
             onChange={(event, newValue) => {
+              // Handle selection from dropdown
               setNewCheck((prevCheck) => ({
                 ...prevCheck,
-                ownerName: newValue ? newValue.ownerName : '',
+                ownerName: newValue || '', // Set to empty string if newValue is null
               }));
             }}
-            value={
-              checkbooks.find(
-                (checkbook) => checkbook.ownerName === newCheck.ownerName,
-              ) || null
-            }
-            isOptionEqualToValue={(option, value) =>
-              option.ownerName === value.ownerName
-            }
+            inputValue={newCheck.ownerName}
+            getOptionSelected={(option, value) => option === value}
+            getOptionLabel={(option) => option}
           />
         )}
         <Typography marginTop={'1rem'} variant='body1'>

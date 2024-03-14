@@ -459,26 +459,26 @@ const AddPaymentPage = () => {
       const response = await addPayment({variables: {input: paymentData}});
       console.log('Payment added:', response.data);
 
-
-        if (
-          response &&
-          response.data &&
-          response.data.addPayment &&
-          response.data.addPayment.success
-        ) {
-          setAdded(true);
-          setSuccessMessage(messages['PaymentSuccessfullyAdded']);
-          // Redirect after 3 seconds
-          setTimeout(() => {
-            navigate(-1); // replace '/path-to-redirect' with your actual path
-          }, 3000);
-        }else if( response &&
-          response.data &&
-          response.data.addPayment &&
-          response.data.addPayment.code === 5){
-            setSuccessMessage(messages['PaymentExist']);
-
-          }
+      if (
+        response &&
+        response.data &&
+        response.data.addPayment &&
+        response.data.addPayment.success
+      ) {
+        setAdded(true);
+        setSuccessMessage(messages['PaymentSuccessfullyAdded']);
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          navigate(-1); // replace '/path-to-redirect' with your actual path
+        }, 3000);
+      } else if (
+        response &&
+        response.data &&
+        response.data.addPayment &&
+        response.data.addPayment.code === 5
+      ) {
+        setSuccessMessage(messages['PaymentExist']);
+      }
 
       setIsDirty(false);
     } catch (error) {
@@ -554,25 +554,34 @@ const AddPaymentPage = () => {
         </Typography>
         {!loading && (
           <Autocomplete
-            options={checkbooks}
-            getOptionLabel={(option) => option.ownerName || ''}
+            freeSolo
+            options={checkbooks.map((checkbook) => checkbook.ownerName)}
             renderInput={(params) => (
-              <TextField {...params} label={messages['OwnerName']} variant='outlined' />
+              <TextField
+                {...params}
+                label={messages['OwnerName']}
+                variant='outlined'
+              />
             )}
+            onInputChange={(event, newValue) => {
+              // Handle custom input
+              if (event && event.type === 'change') {
+                setNewCheck((prevCheck) => ({
+                  ...prevCheck,
+                  ownerName: newValue || '', // Set to empty string if newValue is null
+                }));
+              }
+            }}
             onChange={(event, newValue) => {
+              // Handle selection from dropdown
               setNewCheck((prevCheck) => ({
                 ...prevCheck,
-                ownerName: newValue ? newValue.ownerName : '',
+                ownerName: newValue || '', // Set to empty string if newValue is null
               }));
             }}
-            value={
-              checkbooks.find(
-                (checkbook) => checkbook.ownerName === newCheck.ownerName,
-              ) || null
-            }
-            isOptionEqualToValue={(option, value) =>
-              option.ownerName === value.ownerName
-            }
+            inputValue={newCheck.ownerName}
+            getOptionSelected={(option, value) => option === value}
+            getOptionLabel={(option) => option}
           />
         )}
         <Typography marginTop={'1rem'} variant='body1'>
