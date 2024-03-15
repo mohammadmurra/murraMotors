@@ -53,6 +53,7 @@ const addIssuedCheck = () => {
   const [checkbooks, setCheckbooks] = useState([]);
   const [added, setAdded] = useState(false);
   const handleClick = () => {
+    setInputKey(Date.now()); // Reset the key to force re-render
     setCapture(true);
     document.getElementById('icon-button-file').click();
   };
