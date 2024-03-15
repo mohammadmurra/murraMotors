@@ -54,8 +54,8 @@ const addIssuedCheck = () => {
   const [added, setAdded] = useState(false);
   const handleClick = () => {
     setInputKey(Date.now()); // Reset the key to force re-render
-    setCapture(true);
-    document.getElementById('icon-button-file').click();
+    setCapture(!capture); // Toggle capture to reset the input
+
   };
   // Update useEffect to handle user changes
   useEffect(() => {
