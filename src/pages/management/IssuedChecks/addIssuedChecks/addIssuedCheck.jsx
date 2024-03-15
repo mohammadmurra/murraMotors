@@ -448,6 +448,8 @@ const addIssuedCheck = () => {
         // You can set this data URL to state or perform other actions
       };
     }
+    target.value = null;
+
     setInputKey(Date.now());
     setCapture(false);
   };
