@@ -45,13 +45,17 @@ const addIssuedCheck = () => {
   const [addIssued, {loading, error}] = useMutation(ADD_ISSUEDCHECK_MUTATION);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [inputKey, setInputKey] = useState(Date.now());
+  const [capture, setCapture] = useState(false);
   const [paymentType, setPaymentType] = useState('check');
   const [checks, setChecks] = useState([]);
   const {data} = useQuery(GET_CHECKBOOKS_QUERY);
   const [checkbooks, setCheckbooks] = useState([]);
   const [added, setAdded] = useState(false);
-
+  const handleClick = () => {
+    setCapture(true);
+    document.getElementById('icon-button-file').click();
+  };
   // Update useEffect to handle user changes
   useEffect(() => {
     if (user) {
@@ -432,19 +436,21 @@ const addIssuedCheck = () => {
       gyroNames: prevNewCheck.gyroNames.filter((_, i) => i !== index),
     }));
   };
-  const handleCapture = ({ target }) => {
+  const handleCapture = ({target}) => {
     const fileReader = new FileReader();
     const file = target.files[0];
-  
+
     if (file) {
       fileReader.readAsDataURL(file);
       fileReader.onload = () => {
-        console.log("Image Data URL:", fileReader.result);
+        console.log('Image Data URL:', fileReader.result);
         // You can set this data URL to state or perform other actions
       };
     }
+    setInputKey(Date.now());
+    setCapture(false);
   };
-  
+
   const renderGyroNameField = (name, index) => {
     return (
       <Box key={index} display='flex' alignItems='center' mb={1}>
@@ -500,14 +506,16 @@ const addIssuedCheck = () => {
                         style={{display: 'none'}}
                         id='icon-button-file'
                         type='file'
-                        capture='environment' // Helps mobile devices to directly offer the camera
                         onChange={handleCapture}
+                        key={inputKey}
+                        capture={capture ? 'environment' : undefined}
                       />
                       <label htmlFor='icon-button-file'>
                         <IconButton
                           color='primary'
                           aria-label='upload picture'
                           component='span'
+                          onClick={handleClick}
                         >
                           <CameraAltIcon />
                         </IconButton>
