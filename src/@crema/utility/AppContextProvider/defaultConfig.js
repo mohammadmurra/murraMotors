@@ -82,6 +82,7 @@ export const defaultTheme = {
     status: {
       danger: 'orange',
     },
+    
     divider: 'rgba(224, 224, 224, 1)',
     typography: {
       fontFamily: ['Poppins', 'sans-serif'].join(','),
