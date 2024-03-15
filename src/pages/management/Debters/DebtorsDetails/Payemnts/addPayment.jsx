@@ -35,7 +35,7 @@ const AddPaymentPage = () => {
   const [addedBy, setAddedBy] = useState('');
   const [added, setAdded] = useState(false);
   const navigate = useNavigate();
-
+  const [open, setOpen] = useState(false);
   const location = useLocation();
   const {messages} = useIntl();
   // Parse the query string
@@ -555,12 +555,22 @@ const AddPaymentPage = () => {
         {!loading && (
           <Autocomplete
             freeSolo
+            open={open}
+            onOpen={() => setOpen(true)}
+            onClose={() => setOpen(false)}
             options={checkbooks.map((checkbook) => checkbook.ownerName)}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label={messages['OwnerName']}
                 variant='outlined'
+                InputProps={{
+                  ...params.InputProps,
+                  onFocus: () => {
+                    // Open the dropdown when the input is focused
+                    setOpen(true);
+                  },
+                }}
               />
             )}
             onInputChange={(event, newValue) => {
@@ -597,7 +607,6 @@ const AddPaymentPage = () => {
           helperText={errors.checkNumber && renderErrorText(errors.checkNumber)}
           error={errors.checkNumber}
           onWheel={(e) => e.target.blur()} // Add this line
-
         />
         <Typography marginTop={'1rem'} variant='body1'>
           {messages['CheckDate']}

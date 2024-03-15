@@ -31,6 +31,7 @@ import {useNavigate} from 'react-router-dom';
 const addIssuedCheck = () => {
   const [user] = useAuthState(firebase.auth());
   const [addedBy, setAddedBy] = useState('');
+  const [open, setOpen] = useState(false);
 
   const {messages} = useIntl();
   // Parse the query string
@@ -468,12 +469,22 @@ const addIssuedCheck = () => {
         {!loading && (
           <Autocomplete
             freeSolo
+            open={open}
+            onOpen={() => setOpen(true)}
+            onClose={() => setOpen(false)}
             options={checkbooks.map((checkbook) => checkbook.ownerName)}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label={messages['OwnerName']}
                 variant='outlined'
+                InputProps={{
+                  ...params.InputProps,
+                  onFocus: () => {
+                    // Open the dropdown when the input is focused
+                    setOpen(true);
+                  },
+                }}
               />
             )}
             onInputChange={(event, newValue) => {
@@ -505,13 +516,11 @@ const addIssuedCheck = () => {
           placeholder={messages['CheckNumber']}
           name='checkNumber'
           type='number'
-
           value={newCheck.checkNumber}
           onChange={handleCheckChange}
           helperText={errors.checkNumber && renderErrorText(errors.checkNumber)}
           error={errors.checkNumber}
           onWheel={(e) => e.target.blur()} // Add this line
-
         />
         <Typography marginTop={'1rem'} variant='body1'>
           {messages['CheckDate']}
