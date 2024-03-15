@@ -27,6 +27,7 @@ import {useIntl} from 'react-intl';
 import {firebase} from '@crema/services/auth/firebase/firebase';
 import {useAuthState} from 'react-firebase-hooks/auth';
 import {useNavigate} from 'react-router-dom';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 
 const addIssuedCheck = () => {
   const [user] = useAuthState(firebase.auth());
@@ -431,7 +432,19 @@ const addIssuedCheck = () => {
       gyroNames: prevNewCheck.gyroNames.filter((_, i) => i !== index),
     }));
   };
-
+  const handleCapture = ({ target }) => {
+    const fileReader = new FileReader();
+    const file = target.files[0];
+  
+    if (file) {
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        console.log("Image Data URL:", fileReader.result);
+        // You can set this data URL to state or perform other actions
+      };
+    }
+  };
+  
   const renderGyroNameField = (name, index) => {
     return (
       <Box key={index} display='flex' alignItems='center' mb={1}>
@@ -480,6 +493,28 @@ const addIssuedCheck = () => {
                 variant='outlined'
                 InputProps={{
                   ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      <input
+                        accept='image/*'
+                        style={{display: 'none'}}
+                        id='icon-button-file'
+                        type='file'
+                        capture='environment' // Helps mobile devices to directly offer the camera
+                        onChange={handleCapture}
+                      />
+                      <label htmlFor='icon-button-file'>
+                        <IconButton
+                          color='primary'
+                          aria-label='upload picture'
+                          component='span'
+                        >
+                          <CameraAltIcon />
+                        </IconButton>
+                      </label>
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
                   onFocus: () => {
                     // Open the dropdown when the input is focused
                     setOpen(true);
