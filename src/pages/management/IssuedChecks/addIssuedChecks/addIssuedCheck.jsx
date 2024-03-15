@@ -28,6 +28,7 @@ import {firebase} from '@crema/services/auth/firebase/firebase';
 import {useAuthState} from 'react-firebase-hooks/auth';
 import {useNavigate} from 'react-router-dom';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import jsQR from 'jsqr';
 
 const addIssuedCheck = () => {
   const [user] = useAuthState(firebase.auth());
@@ -437,22 +438,59 @@ const addIssuedCheck = () => {
       gyroNames: prevNewCheck.gyroNames.filter((_, i) => i !== index),
     }));
   };
-  const handleCapture = ({target}) => {
+  const handleCapture = ({ target }) => {
     const fileReader = new FileReader();
     const file = target.files[0];
-
+  
     if (file) {
-      fileReader.readAsDataURL(file);
-      fileReader.onload = () => {
-        console.log('Image Data URL:', fileReader.result);
-        // You can set this data URL to state or perform other actions
+      // Read the file as an ArrayBuffer
+      fileReader.readAsArrayBuffer(file);
+      fileReader.onloadend = (e) => {
+        const arrayBuffer = e.target.result;
+  
+        // Create an off-screen image element to load the file
+        const img = new Image();
+        img.onload = () => {
+          // Draw the image onto a canvas to get pixel data
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+  
+          // Get the image data from canvas
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  
+          // Decode the QR code
+          const codeResult = jsQR(imageData.data, imageData.width, imageData.height);
+          if (codeResult) {
+            console.log('Decoded QR data:', codeResult.data);
+            // Split the data by semicolon
+            const qrDataParts = codeResult.data.split(';');
+            // Check if the QR data has at least two parts (name and number)
+            if (qrDataParts.length >= 2) {
+              const ownerName = qrDataParts[1].trim(); // Second part is the owner name
+              setNewCheck(prevCheck => ({
+                ...prevCheck,
+                ownerName: ownerName,
+              }));
+            } else {
+              console.error('QR data does not contain expected parts.');
+            }
+          } else {
+            console.error('No QR code found.');
+          }
+        };
+  
+        // Load the image source from the FileReader result
+        img.src = URL.createObjectURL(new Blob([arrayBuffer]));
       };
     }
+  
+    // Reset the file input
     target.value = null;
-
-    setInputKey(Date.now());
-    setCapture(false);
   };
+  
 
   const renderGyroNameField = (name, index) => {
     return (
