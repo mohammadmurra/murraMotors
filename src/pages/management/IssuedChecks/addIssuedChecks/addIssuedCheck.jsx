@@ -14,6 +14,7 @@ import {
   Card,
   IconButton,
   Autocomplete,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
@@ -28,19 +29,21 @@ import {firebase} from '@crema/services/auth/firebase/firebase';
 import {useAuthState} from 'react-firebase-hooks/auth';
 import {useNavigate} from 'react-router-dom';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import {BrowserQRCodeReader} from '@zxing/library';
 import jsQR from 'jsqr';
 
 const addIssuedCheck = () => {
   const [user] = useAuthState(firebase.auth());
   const [addedBy, setAddedBy] = useState('');
   const [open, setOpen] = useState(false);
+  const [qrLoading, setQrLoading] = useState(false);
 
   const {messages} = useIntl();
   // Parse the query string
   const [currency, setCurrency] = useState('ILS');
   const [conversionRate, setConversionRate] = useState('');
   const navigate = useNavigate();
-
+  const [qrMessage, setQrMessage] = useState('');
   const cashValueRef = useRef(null);
   const checkValueRef = useRef(null);
   const [addIssued, {loading, error}] = useMutation(ADD_ISSUEDCHECK_MUTATION);
@@ -56,7 +59,6 @@ const addIssuedCheck = () => {
   const handleClick = () => {
     setInputKey(Date.now()); // Reset the key to force re-render
     setCapture(!capture); // Toggle capture to reset the input
-
   };
   // Update useEffect to handle user changes
   useEffect(() => {
@@ -438,59 +440,76 @@ const addIssuedCheck = () => {
       gyroNames: prevNewCheck.gyroNames.filter((_, i) => i !== index),
     }));
   };
-  const handleCapture = ({ target }) => {
-    const fileReader = new FileReader();
+  const handleCapture = async ({target}) => {
+    setOpen(false);
+    setQrLoading(true);
+    setNewCheck((prev) => ({...prev, ownerName: ''})); // Clear owner name field initially
+
     const file = target.files[0];
-  
-    if (file) {
-      // Read the file as an ArrayBuffer
-      fileReader.readAsArrayBuffer(file);
-      fileReader.onloadend = (e) => {
-        const arrayBuffer = e.target.result;
-  
-        // Create an off-screen image element to load the file
-        const img = new Image();
-        img.onload = () => {
-          // Draw the image onto a canvas to get pixel data
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-  
-          // Get the image data from canvas
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  
-          // Decode the QR code
-          const codeResult = jsQR(imageData.data, imageData.width, imageData.height);
-          if (codeResult) {
-            console.log('Decoded QR data:', codeResult.data);
-            // Split the data by semicolon
-            const qrDataParts = codeResult.data.split(';');
-            // Check if the QR data has at least two parts (name and number)
-            if (qrDataParts.length >= 2) {
-              const ownerName = qrDataParts[1].trim(); // Second part is the owner name
-              setNewCheck(prevCheck => ({
-                ...prevCheck,
-                ownerName: ownerName,
-              }));
-            } else {
-              console.error('QR data does not contain expected parts.');
-            }
-          } else {
-            console.error('No QR code found.');
-          }
-        };
-  
-        // Load the image source from the FileReader result
-        img.src = URL.createObjectURL(new Blob([arrayBuffer]));
-      };
+    if (!file) {
+      setQrMessage(messages['NoFileSelected']);
+      setQrLoading(false);
+      return;
     }
-  
-    // Reset the file input
-    target.value = null;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const src = e.target.result;
+      tryDecodeWithZXing(src);
+    };
+    reader.readAsDataURL(file);
   };
-  
+
+  const tryDecodeWithZXing = async (src) => {
+    const codeReader = new BrowserQRCodeReader();
+    try {
+      const result = await codeReader.decodeFromImage(undefined, src);
+      processDecodedResult(result.text);
+      setQrMessage(messages['QRCodeSuccessfullyDecoded']);
+    } catch (error) {
+      console.error('ZXing error:', error);
+      tryDecodeWithJsQR(src);
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  const tryDecodeWithJsQR = (src) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const qrResult = jsQR(imageData.data, imageData.width, imageData.height);
+      if (qrResult) {
+        processDecodedResult(qrResult.data);
+        setQrMessage(messages['QRCodeSuccessfullyDecoded']);
+      } else {
+        setQrMessage(messages['NoQRCodeFound']);
+      }
+    };
+    image.onerror = () => {
+      setQrMessage(messages['ErrorLoadingImage']);
+    };
+    image.src = src;
+  };
+
+  const processDecodedResult = (decodedText) => {
+    console.log('Decoded QR data:', decodedText);
+    const qrDataParts = decodedText.split(';');
+    if (qrDataParts.length >= 2) {
+      const ownerName = qrDataParts[1].trim();
+      setNewCheck((prevCheck) => ({
+        ...prevCheck,
+        ownerName: ownerName,
+      }));
+    } else {
+      setQrMessage(messages['QRDataFormatIncorrect']);
+    }
+  };
 
   const renderGyroNameField = (name, index) => {
     return (
@@ -542,21 +561,26 @@ const addIssuedCheck = () => {
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      <input
-                        accept='image/*'
-                        style={{display: 'none'}}
-                        id='icon-button-file'
-                        type='file'
-                        onChange={handleCapture}
-                        key={inputKey}
-                        capture={capture ? 'environment' : undefined}
-                      />
+                      {qrLoading ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <input
+                          accept='image/*'
+                          style={{display: 'none'}}
+                          id='icon-button-file'
+                          type='file'
+                          onChange={handleCapture}
+                          key={inputKey}
+                          capture={capture ? 'environment' : undefined}
+                        />
+                      )}
                       <label htmlFor='icon-button-file'>
                         <IconButton
                           color='primary'
                           aria-label='upload picture'
                           component='span'
                           onClick={handleClick}
+                          disabled={qrLoading}
                         >
                           <CameraAltIcon />
                         </IconButton>
@@ -568,6 +592,7 @@ const addIssuedCheck = () => {
                     // Open the dropdown when the input is focused
                     setOpen(true);
                   },
+                  disabled: qrLoading, // Disable the text field when loading
                 }}
               />
             )}
@@ -592,6 +617,10 @@ const addIssuedCheck = () => {
             getOptionLabel={(option) => option}
           />
         )}
+        {/* New Typography component to display QR code reader status */}
+        <Typography color='error' variant='body2' marginTop='8px'>
+          {qrMessage}
+        </Typography>
         <Typography marginTop={'1rem'} variant='body1'>
           {messages['CheckNumber']}
         </Typography>
