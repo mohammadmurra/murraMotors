@@ -1,7 +1,7 @@
 import React from 'react';
 import {useThemeContext} from '../../../../utility/AppContextProvider/ThemeContextProvider';
 import {Box} from '@mui/material';
-import {ReactComponent as Logo} from '../../../../../assets/icon/logo.svg';
+import {ReactComponent as Logo} from '../../../../../assets/icon/logo1.svg';
 
 const AppLogo = () => {
   const {theme} = useThemeContext();
@@ -16,7 +16,7 @@ const AppLogo = () => {
         alignItems: 'center',
         justifyContent: 'center',
         '& svg': {
-          height: {xs: 12, sm: 12},
+          height: {xs: 40, sm: 40},
         },
       }}
       className='app-logo'

@@ -64,10 +64,10 @@ const AuthWrapper = ({children}) => {
                 mb: 4,
               }}
             >
-              Welcome to Murra Admin
+              Welcome to Murra Motors Admin
             </Typography>
             <Typography>
-            Murra admin is a website used by Murra employees If you&apos;re
+            Murra admin is a website used by Murra Motors employees If you&apos;re
               not an employee, you can&apos;t sign in For more information
               please contact us
             </Typography>

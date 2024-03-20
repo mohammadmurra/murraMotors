@@ -1,9 +1,8 @@
-import React, {useEffect} from 'react';
-import {useDispatch} from 'react-redux';
-import {onGetECommerceData} from '../../../redux/actions';
-// import AppGridContainer from '@crema/core/AppGridContainer';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { onGetECommerceData } from '../../../redux/actions';
 import AppAnimate from '@crema/core/AppAnimate';
-import {Box, Typography, useTheme, useMediaQuery} from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 import logo from '../../../assets/logo.png';
 
 const ECommerce = () => {
@@ -17,30 +16,21 @@ const ECommerce = () => {
 
   return (
     <AppAnimate animation='transition.slideUpIn' delay={200}>
-        <Box>
-          <Box
-            display='flex'
-            flexDirection='column'
-            alignItems='center'
-            justifyContent='center'
-            minHeight='100vh'
-          >
-            <Typography
-              variant={isXsScreen ? 'h5' : 'h3'}
-              component='h1'
-              gutterBottom
-            >
-              Welcome to Morra Constructions
-            </Typography>
-            <Box
-              component='img'
-              src={logo}
-              alt='Morra Constructions Logo'
-              sx={{width: isXsScreen ? 120 : 200}} // Responsive size
-            />
-          </Box>
-        </Box>
-
+      <Box
+        display='flex'
+        flexDirection='column'
+        alignItems='center'
+        justifyContent='center'
+        minHeight='100vh'
+      >
+    
+        <Box
+          component='img'
+          src={logo}
+          alt='Morra Mutors Logo'
+          sx={{ width: isXsScreen ? 120 : 200, margin: '0 auto' }} // Center the logo
+        />
+      </Box>
     </AppAnimate>
   );
 };

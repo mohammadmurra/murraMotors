@@ -6,13 +6,12 @@ import {updateProducts} from 'utils';
 // Initialize Firebase
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD5rp6Z_7E-oMo2j3HUFr_2YLfbIHnbu2w",
-  authDomain: "murracoltd.firebaseapp.com",
-  projectId: "murracoltd",
-  storageBucket: "murracoltd.appspot.com",
-  messagingSenderId: "642398142944",
-  appId: "1:642398142944:web:007d63010d28c8c0c3eb85",
-  measurementId: "G-PVHBQGLQ93"
+  apiKey: "AIzaSyBf7ke4PRQZ9j16W_9lAygK20_YYvf7BtY",
+  authDomain: "murramotors-cebdd.firebaseapp.com",
+  projectId: "murramotors-cebdd",
+  storageBucket: "murramotors-cebdd.appspot.com",
+  messagingSenderId: "291719884620",
+  appId: "1:291719884620:web:0d2da56bce11b7c086e9e9"
 };
 
 firebase.initializeApp(firebaseConfig);

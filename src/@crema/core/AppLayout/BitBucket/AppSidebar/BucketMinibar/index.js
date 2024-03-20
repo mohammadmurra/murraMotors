@@ -8,7 +8,7 @@ import {useThemeContext} from '../../../../../utility/AppContextProvider/ThemeCo
 // import AppMessages from '../../../../AppMessages';
 // import AppNotifications from '../../../../AppNotifications';
 import UserInfo from '../UserInfo';
-import {ReactComponent as Logo} from '../../../../../../assets/icon/logo.svg';
+import {ReactComponent as Logo} from '../../../../../../assets/icon/logo1.svg';
 
 const BucketMinibar = () => {
   const {theme} = useThemeContext();
