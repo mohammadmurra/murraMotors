@@ -67,7 +67,6 @@ const EditEmployee = ({
     const form = {
       id: employeeData.id,
       name: formData.name?formData.name:employeeData.name,
-      salary: formData.salary?Number(formData.salary):Number(employeeData.salary),
       role: role,
       phone_Number: formData.phone_Number?formData.phone_Number:employeeData.phone_Number,
 
@@ -143,18 +142,7 @@ const EditEmployee = ({
                 />
               </Grid>
 
-              <Grid item textAlign={'start'} xs={12} lg={6}>
-                <TextField
-                  id='salary'
-                  name='salary'
-                  label={['salary']}
-                  type = 'number'
-                  defaultValue={employeeData.salary}
-                  variant='outlined'
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
+           
 
               <Grid item textAlign={'start'} xs={9} lg={11} mr={11}>
                 <FormControl fullWidth>
